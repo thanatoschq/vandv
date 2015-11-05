@@ -353,16 +353,21 @@
 					xtype:'dataview',region:'center',
 					store:equima.st_view_files,
 					scrollable:true,
-					tpl: new Ext.XTemplate(
+					tpl: [
 						'<tpl for=".">',
 	        				'<div class="dataview-multisort-item" class="thumb-wrap">',
 	          					'<img src="{path_img}" widht:"100" height="100"/>',
 	          				'<br/><span>{desc_img}</span>',
 	        				'</div>',
 	    				'</tpl>'
-					),
+					],
 					itemSelector: 'div.thumb-wrap',
-	    			emptyText: 'Sin Imagenes...'
+	    			emptyText: 'Sin Imagenes...',
+	    			listeners:{
+	    				itemclick:function( ths, record, item, index, e, eOpts ){
+	    					console.log(item);
+	    				}
+	    			}
 				}],
 				collapsible:true,
 				tbar:[{

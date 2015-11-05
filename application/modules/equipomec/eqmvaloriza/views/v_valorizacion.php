@@ -159,10 +159,10 @@ eqm_valoriza.window_nuevo = function(){
 	}).show();
 };
 
-eqm_valoriza.window_maquinaria = function(){
+eqm_valoriza.window_maquinaria = function(opt,rec){
 	Ext.create('Ext.window.Window',{
 		title:'Ingresar Nueva maquinaria',
-		modal:true,width:500,height:300,
+		modal:true,width:500,height:400,
 		id:'eqm_valoriza_window_maquinaria',
 		items:[{
 			xtype:'form',bodyPadding:5,
@@ -174,13 +174,21 @@ eqm_valoriza.window_maquinaria = function(){
 			},
 			defaultType:'textfield',
 			items:[{
+				xtype:'hiddenfield',
+				name:'id_det_valoriza'
+			},{
 				fieldLabel:'Maquina/Equipo:',
 				xtype:'combobox',
 				//queryMode:'local',
 				store:eqm_valoriza.st_maquiequi,
 				displayField: 'desc_maqequi',
     			valueField: 'cod_maqequi',
-    			name:'cod_maqequi'
+    			name:'cod_maqequi',
+    			listConfig:{
+    				itemTpl:[
+    					'<div>({cod_maqequi}) {desc_maqequi}</div>'
+    				]
+    			}
 			},{
 				fieldLabel:'Responsable:',
 				xtype:'combobox',
@@ -194,13 +202,15 @@ eqm_valoriza.window_maquinaria = function(){
 				store:eqm_valoriza.st_estado_maqequi,
 				displayField: 'desc_estado',
     			valueField: 'cod_estado',
-    			name:'emaq_det_maquina'
+    			name:'emq_det_maquina'
 			},{
 				fieldLabel:'Rep/Mant:',
-				xtype:'numberfield'
+				xtype:'numberfield',
+				name:'repmant_det_maquina'
 			},{
 				fieldLabel:'Planilla:',
-				xtype:'numberfield'
+				xtype:'numberfield',
+				name:'plani_det_maquina'
 			},{
 				fieldLabel:'Trabajo Reliza.:',
 				xtype:'textarea',
@@ -218,19 +228,21 @@ eqm_valoriza.window_maquinaria = function(){
 					params:{
 						anio:eqm_valoriza.anio,
 						obra:eqm_valoriza.obra,
-						val:eqm_valoriza.valorizacion
+						val:eqm_valoriza.valorizacion,
+						opt:opt
 					},
 					success:function(form,action){
 						Ext.Msg.alert('Sistema',action.result.msg);
-						eqm_valoriza.st_valoriza.reload({
+						eqm_valoriza.grid_maquina.reload();
+						/*eqm_valoriza.st_valoriza.reload({
 							anio:eqm_valoriza.anio,
 	    					obra:eqm_valoriza.obra
-						});
-						win = Ext.getCmp('eqm_valoriza_window_new');
+						});*/
+						win = Ext.getCmp('eqm_valoriza_window_maquinaria');
 						win.close();
 					},
 					failure:function(){
-						win = Ext.getCmp('eqm_valoriza_window_new');
+						win = Ext.getCmp('eqm_valoriza_window_maquinaria');
 						win.close();
 					}
 				});
@@ -243,9 +255,17 @@ eqm_valoriza.window_maquinaria = function(){
 		}]
 
 	}).show();
+
+	if(opt == 'e'){
+		eqm_valoriza.st_maquiequi.load();
+		eqm_valoriza.st_trabajador.load();
+		eqm_valoriza.st_estado_maqequi.load();
+		frm = Ext.getCmp('eqm_valoriza_form_maquinaria');
+		frm.loadRecord(rec[0]);
+	}
 };
 
-eqm_valoriza.window_detalle = function(){ 
+eqm_valoriza.window_detalle = function(opt,rec){ 
 	Ext.create('Ext.window.Window',{
 		title:'Ingresar Nueva Valorizacion',
 			modal:true,width:300,height:450,
@@ -260,6 +280,9 @@ eqm_valoriza.window_detalle = function(){
 				},
 				defaultType:'textfield',
 				items:[{
+					xtype:'hiddenfield',
+					name:'id_maquina_val'
+				},{
 					fieldLabel:'Fecha',
 					xtype:'datefield',format:'d/m/Y',
 					name:'fech_maquina_val'
@@ -363,18 +386,21 @@ eqm_valoriza.window_detalle = function(){
 							anio:eqm_valoriza.anio,
 							obra:eqm_valoriza.obra,
 							val:eqm_valoriza.valorizacion,
-							iddet:row.id_det_valoriza
+							iddet:row.id_det_valoriza,
+							opt:opt
 						},
 						success:function(form,action){
 							Ext.Msg.alert('Sistema',action.result.msg);
-							eqm_valoriza.st_grid_valoriza.reload({
+							eqm_valoriza.st_grid_valoriza.reload();
+							eqm_valoriza.grid_maquina.reload();
+							/*eqm_valoriza.st_grid_valoriza.reload({
 								params:{
 									anio:eqm_valoriza.anio,
 									obra:eqm_valoriza.obra,
 									val:eqm_valoriza.valorizacion,
 									maq:eqm_valoriza.id_det_valoriza
 								}
-							});
+							});*/
 							win = Ext.getCmp('eqm_valoriza_window_detalle');
 							win.close();
 						},
@@ -391,6 +417,11 @@ eqm_valoriza.window_detalle = function(){
 				}
 			}]
 	}).show();
+
+	if(opt == 'e'){
+		frm = Ext.getCmp('eqm_valoriza_frm_detalle');
+		frm.loadRecord(rec[0]);
+	}
 }
 
 /********************** formulario *****************************/
@@ -406,18 +437,25 @@ eqm_valoriza.grid_resumen = Ext.create('Ext.grid.Panel',{
 			{text:'Maquinaria',dataIndex:'desc_maqequi'},
 			{text:'Val.Actual',dataIndex:'val_actual',xtype:'numbercolumn',align:'right'},
 			{text:'Combustible',dataIndex:'val_combus',xtype:'numbercolumn',align:'right'},
-			{text:'Planilla',dataIndex:'',xtype:'numbercolumn',align:'right'},
-			{text:'Rep/Mat',dataIndex:'',xtype:'numbercolumn',align:'right'},
-			{text:'Rendimiento',dataIndex:'',xtype:'numbercolumn',align:'right'},
+			{text:'Planilla',dataIndex:'plani_det_maquina',xtype:'numbercolumn',align:'right'},
+			{text:'Rep/Mat',dataIndex:'repmant_det_maquina',xtype:'numbercolumn',align:'right'},
+			{text:'Rendimiento',dataIndex:'rendi_maquina',xtype:'numbercolumn',align:'right'},
 			{text:'Est.',dataIndex:'desc_estado_maquina'}
 		],
 		store:eqm_valoriza.grid_maquina,
 		tbar:[{
 			text:'Nuevo',handler:function(){
-				eqm_valoriza.window_maquinaria();
+				eqm_valoriza.window_maquinaria('n',null);
 			}
 		},{
-			text:'Editar'
+			text:'Editar',handler:function(){
+				rec = eqm_valoriza.grid_resumen.getSelection();
+				if(rec[0]){
+					eqm_valoriza.window_maquinaria('e',rec);
+				}else{
+					Ext.Msg.alert('Error','Seleccione un registro a editar');
+				}
+			}
 		},{
 			text:'Anular'
 		},{
@@ -477,10 +515,17 @@ eqm_valoriza.grid_valoriza = Ext.create('Ext.grid.Panel',{
 		store:eqm_valoriza.st_grid_valoriza,
 		tbar:[{
 			text:'Agregar',handler:function(){
-				eqm_valoriza.window_detalle();
+				eqm_valoriza.window_detalle('n',null);
 			}
 		},{
-			text:'Editar'
+			text:'Editar',handler:function(){
+				rec = eqm_valoriza.grid_valoriza.getSelection();
+				if(rec[0]){
+					eqm_valoriza.window_detalle('e',rec);
+				}else{
+					Ext.Msg.alert('Error','Seleccione un registro a editar');
+				}
+			}
 		},{
 			text:'Eliminar'
 		}]

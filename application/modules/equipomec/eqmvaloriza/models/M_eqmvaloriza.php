@@ -63,53 +63,7 @@ class M_eqmvaloriza extends CI_Model{
 	}
 
 	public function get_val_maquinaria($anio,$obra,$val){
-		$sql = "SELECT 
-			  dm.id_det_valoriza,
-			  dm.nro_valoriza,
-			  dm.cod_obra,
-			  dm.anio_eje,
-			  min(mv.fech_maquina_val) AS desde,
-			  max(mv.fech_maquina_val) AS hasta,
-			  sum(mv.tot_maquina_val) AS val_actual,
-			  sum(mv.tot_combustible) AS val_combus,
-			  me.cod_maqequi,
-			  me.desc_maqequi,
-			  t.cod_trabajador,
-			  (t.nom_trabajador||' '|| t.apat_trabajador||' '||t.amat_trabajador) nomb_trabajador,
-			  dm.emaq_det_maquina,
-			  CASE dm.emaq_det_maquina
-			  	WHEN 'O' THEN 'OPERATIVO' 
-			    WHEN 'F' THEN 'FALLAS'
-			  END AS desc_estado_maquina,
-			  dm.real_det_maquina,
-			  dm.obs_det_maquina
-			FROM
-			  eqm.det_maquinaria dm
-			  left JOIN eqm.maquina_val mv ON (dm.id_det_valoriza = mv.id_det_valoriza)
-			  AND (dm.anio_eje = mv.anio_eje)
-			  AND (dm.cod_obra = mv.cod_obra)
-			  AND (dm.nro_valoriza = mv.nro_valoriza)
-			  INNER JOIN eqm.maqui_equi me ON (dm.cod_maqequi = me.cod_maqequi)
-			  INNER JOIN eqm.trabajador t ON (dm.cod_trabajador = t.cod_trabajador)
-			where
-			  dm.anio_eje = ? AND
-			  dm.cod_obra = ? AND
-			  dm.nro_valoriza = ?
-			GROUP BY
-			  dm.id_det_valoriza,
-			  dm.nro_valoriza,
-			  dm.cod_obra,
-			  dm.anio_eje,
-			  me.cod_maqequi,
-			  me.desc_maqequi,
-			  t.cod_trabajador,
-			  t.nom_trabajador,
-			  t.apat_trabajador,
-			  t.amat_trabajador,
-			  dm.emaq_det_maquina,
-			  dm.real_det_maquina,
-			  dm.obs_det_maquina";
-
+		$sql = "select * from eqm.str_valorizacion_det(?,?,?)";
 		$where = array($anio,$obra,$val);
 		$result = $this->db->query($sql,$where);
 		return $result;
@@ -143,7 +97,7 @@ class M_eqmvaloriza extends CI_Model{
 		return $num;
 	}
 
-	public function reg_nueva_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$val){
+	public function reg_nueva_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$plani,$repmant,$val){
 		$data  = array(
 			"nro_valoriza" => $val,
   			"cod_obra" =>  $obra,
@@ -152,12 +106,45 @@ class M_eqmvaloriza extends CI_Model{
   			"cod_trabajador" => $cod_trabajador,
   			"emaq_det_maquina" => $emaq_det_maquina,
   			"real_det_maquina" =>  $real_det_maquina,
-  			"obs_det_maquina" => $obs_det_maquina
+  			"obs_det_maquina" => $obs_det_maquina,
+  			"plani_det_maquina" => $plani,
+  			"repmant_det_maquina" => $repmant
 		);
 
 		$this->db->trans_begin();
 		
 		$this->db->insert('eqm.det_maquinaria',$data);
+
+		if ($this->db->trans_status() === FALSE){
+        	$this->db->trans_rollback();
+        	return "false";
+		}else{
+        	$this->db->trans_commit();
+        	return "true";
+		}
+	}
+
+	public function reg_edita_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$plani,$repmant,$val,$id){
+		$data  = array(
+  			"cod_maqequi" => $cod_maqequi,
+  			"cod_trabajador" => $cod_trabajador,
+  			"emaq_det_maquina" => $emaq_det_maquina,
+  			"real_det_maquina" =>  $real_det_maquina,
+  			"obs_det_maquina" => $obs_det_maquina,
+  			"plani_det_maquina" => $plani,
+  			"repmant_det_maquina" => $repmant
+		);
+
+		$where = array(
+			"id_det_valoriza" => $id,
+			"nro_valoriza" => $val,
+  			"cod_obra" =>  $obra,
+  			"anio_eje" => $anio
+		);
+
+		$this->db->trans_begin();
+		
+		$this->db->update('eqm.det_maquinaria',$data,$where);
 
 		if ($this->db->trans_status() === FALSE){
         	$this->db->trans_rollback();
@@ -197,6 +184,43 @@ class M_eqmvaloriza extends CI_Model{
 		$this->db->trans_begin();
 		
 		$this->db->insert('eqm.maquina_val',$data);
+
+		if ($this->db->trans_status() === FALSE){
+        	$this->db->trans_rollback();
+        	return "false";
+		}else{
+        	$this->db->trans_commit();
+        	return "true";
+		}
+	}
+
+	public function reg_edita_detalle($anio,$cant_comb,$cant_maq_val,$fech_maq_val,$id_detalle,$nro_parte,$cod_obra,$obs_maq,$precio_maq_val,$pu_combus,$tot_combus,$tot_maq_val, $unid_maq_val,$id_val,$id_maq_val){
+		$data = array(
+			
+			"cant_combustible" => $cant_comb,
+			"cant_maquina_val" => $cant_maq_val,
+			"fech_maquina_val" => $fech_maq_val,
+			"nro_parte_maquina_val" => $nro_parte,
+			"observ_maquina_val" => $obs_maq,
+			"precio_maquina_val" => $precio_maq_val,
+			"pu_combustible" => $pu_combus,
+			"tot_combustible" => $tot_combus,
+			"tot_maquina_val" => $tot_maq_val,
+			"unid_maquina_val" => $unid_maq_val,
+			
+		);
+
+		$where = array(
+			"nro_valoriza" => $id_val,
+			"anio_eje" => $anio,
+			"cod_obra" => $cod_obra,
+			"id_det_valoriza" => $id_detalle,
+			"id_maquina_val" => $id_maq_val
+		);
+
+		$this->db->trans_begin();
+		
+		$this->db->update('eqm.maquina_val',$data,$where);
 
 		if ($this->db->trans_status() === FALSE){
         	$this->db->trans_rollback();

@@ -82,13 +82,22 @@ class Eqmvaloriza extends MX_Controller {
 		$anio = $this->input->post('anio');
 		$cod_maqequi = $this->input->post('cod_maqequi');
 		$cod_trabajador = $this->input->post('cod_trabajador');
-		$emaq_det_maquina = $this->input->post('emaq_det_maquina');
+		$emaq_det_maquina = $this->input->post('emq_det_maquina');
 		$obra = $this->input->post('obra');
 		$obs_det_maquina = $this->input->post('obs_det_maquina');
 		$real_det_maquina = $this->input->post('real_det_maquina');
 		$val = $this->input->post('val');
+		$id = $this->input->post('id_det_valoriza');
+		$opt = $this->input->post('opt');
+		$plani = $this->input->post('plani_det_maquina');
+		$repmant = $this->input->post('repmant_det_maquina');
 
-		$result = $this->mv->reg_nueva_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$val);
+		if($opt == 'n'){
+			$result = $this->mv->reg_nueva_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$plani,$repmant,$val);
+		}else if($opt == 'e'){
+			$result = $this->mv->reg_edita_maquina($anio,$cod_maqequi,$cod_trabajador,$emaq_det_maquina,$obra,$obs_det_maquina,$real_det_maquina,$plani,$repmant,$val,$id);
+		}
+		
 
 		if($result == "true"){
   			echo '{"success":"'.$result.'","msg":"Se registro el proceso"}';
@@ -127,9 +136,15 @@ class Eqmvaloriza extends MX_Controller {
 		$tot_maq_val = $this->input->post('tot_maquina_val');
 		$unid_maq_val = $this->input->post('unid_maquina_val');
 		$id_val = $this->input->post('val');
+		$opt = $this->input->post('opt');
+		$id_maq_val = $this->input->post('id_maquina_val');
 
-		$result = $this->mv->reg_nuevo_detalle($anio,$cant_comb,$cant_maq_val,$fech_maq_val,$id_detalle,$nro_parte,$cod_obra,$obs_maq,$precio_maq_val,$pu_combus,$tot_combus,$tot_maq_val, $unid_maq_val,$id_val);
-
+		if($opt == 'n'){
+			$result = $this->mv->reg_nuevo_detalle($anio,$cant_comb,$cant_maq_val,$fech_maq_val,$id_detalle,$nro_parte,$cod_obra,$obs_maq,$precio_maq_val,$pu_combus,$tot_combus,$tot_maq_val, $unid_maq_val,$id_val);
+		}else if($opt == 'e'){
+			$result = $this->mv->reg_edita_detalle($anio,$cant_comb,$cant_maq_val,$fech_maq_val,$id_detalle,$nro_parte,$cod_obra,$obs_maq,$precio_maq_val,$pu_combus,$tot_combus,$tot_maq_val, $unid_maq_val,$id_val,$id_maq_val);
+		}
+		
 		if($result == "true"){
   			echo '{"success":"'.$result.'","msg":"Se registro el proceso"}';
   		}else{
