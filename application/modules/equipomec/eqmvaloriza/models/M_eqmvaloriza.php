@@ -236,7 +236,7 @@ class M_eqmvaloriza extends CI_Model{
 		$this->db->where('cod_obra',$obra);
 		$this->db->where('nro_valoriza',$val);
 		$this->db->where('id_det_valoriza',$id_maq);
-		$result = $this->db->get('eqm.maquina_val');
+		$result = $this->db->get('eqm.v_maquina_val');
 		//echo $this->db->last_query();
 		return $result;
 	}

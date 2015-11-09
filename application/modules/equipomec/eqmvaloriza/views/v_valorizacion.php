@@ -501,13 +501,12 @@ eqm_valoriza.grid_valoriza = Ext.create('Ext.grid.Panel',{
 		//id:'equima_grid_main',
 		title:'Costos',
 		columns:[
-			{text:'Fecha',dataIndex:'fech_maquina_val'},
+			{text:'Fecha',dataIndex:'fech_maquina_val',formatter:'date("d/m/Y")'},
 			{text:'Nº Parte',dataIndex:'nro_parte_maquina_val'},
-			{text:'Unidad',dataIndex:'unid_maquina_val'},
+			{text:'Unidad',dataIndex:'desc_unid_maquina_val'},
 			{text:'Precio',dataIndex:'precio_maquina_val',xtype:'numbercolumn',align:'right'},
 			{text:'Cantidad',dataIndex:'cant_maquina_val',xtype:'numbercolumn',align:'right'},
 			{text:'Parcial',dataIndex:'tot_maquina_val',xtype:'numbercolumn',align:'right'},
-			//{text:'Tip. Comb.',dataIndex:''},
 			{text:'Cantidad',dataIndex:'cant_combustible',xtype:'numbercolumn',align:'right'},
 			{text:'P/U',dataIndex:'pu_combustible',xtype:'numbercolumn',align:'right'},
 			{text:'Total',dataIndex:'tot_combustible',xtype:'numbercolumn',align:'right'}
@@ -563,7 +562,7 @@ eqm_valoriza.panel_main = Ext.create('Ext.panel.Panel',{
 	    	queryMode:'local',
 	    	listeners:{
 	    		select:function(combo, record, eOpts){
-	    			eqm_valoriza.obra = record.data.cod_obra
+	    			eqm_valoriza.obra = record.data.cod_obra;
 	    			eqm_valoriza.st_valoriza.reload({
 	    				params:{
 	    					anio:record.data.anio_eje,
